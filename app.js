@@ -1,6 +1,11 @@
 'use strict';
 
 const Hapi = require('hapi');
+const fs = require('fs');
+const imagesFS = './public/images';
+let imgFileList;
+
+
 
 //init server
 const server = Hapi.server({
@@ -9,7 +14,7 @@ const server = Hapi.server({
 });
 
 //Start server
-const init = async () => {
+const init = async() => {
 
     //handling static
     await server.register(require('inert'));
@@ -25,23 +30,16 @@ const init = async () => {
     });
 
     // static page content
-    server.route({
-        method: 'GET',
-        path: '/images/1',
-        handler: (request, h) => {
 
-            return h.file('./public/images/1.png');
+    const routes = fs.readdirSync(imagesFS).map((img) => {
+        return {
+            method: 'GET',
+            path: `/image/${img.split('.')[0]}`,
+            handler: (request, h) => h.file(`./public/images/${img}`)
         }
     });
 
-    server.route({
-        method: 'GET',
-        path: '/images/dance',
-        handler: (request, h) => {
-
-            return h.file('./public/images/dance.gif');
-        }
-    });
+    server.route(routes);
 
     await server.start();
     console.log(`Hapi server hosed at : ${server.info.uri}`);
